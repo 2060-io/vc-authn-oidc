@@ -14,6 +14,6 @@ class WalletDidPublicResponse(BaseModel):
 
 
 class CreatePresentationResponse(BaseModel):
-    thread_id: str
-    presentation_exchange_id: str
-    presentation_request: Dict
+    proofExchangeId: str
+    url: str
+    shortUrl: str

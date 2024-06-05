@@ -50,35 +50,17 @@ class Token(BaseModel):
 
         presentation_claims: Dict[str, Claim] = {}
         logger.info(
-            auth_session.presentation_exchange["presentation_request"][
-                "requested_attributes"
-            ]
+            auth_session.presentation_exchange["claims"]
         )
 
-        referent: str
-        requested_attr: ReqAttr
         try:
-            for referent, requested_attrdict in auth_session.presentation_exchange[
-                "presentation_request"
-            ]["requested_attributes"].items():
-                requested_attr = ReqAttr(**requested_attrdict)
-                logger.debug(
-                    f"Processing referent: {referent}, requested_attr: {requested_attr}"
+            # loop through each value and put it in token as a claim
+            for claim in auth_session.presentation_exchange["claims"]:
+                presentation_claims[claim["name"]] = Claim(
+                    type=claim["name"],
+                    value=claim["value"],
                 )
-                revealed_attrs: Dict[str, RevealedAttribute] = (
-                    auth_session.presentation_exchange["presentation"][
-                        "requested_proof"
-                    ]["revealed_attr_groups"]
-                )
-                logger.debug(f"revealed_attrs: {revealed_attrs}")
-                # loop through each value and put it in token as a claim
-                for attr_name in requested_attr.names:
-                    logger.debug(f"AttrName: {attr_name}")
-                    presentation_claims[attr_name] = Claim(
-                        type=attr_name,
-                        value=revealed_attrs[referent]["values"][attr_name]["raw"],
-                    )
-                    logger.debug(f"Compiled presentation_claims: {presentation_claims}")
+            logger.debug(f"Compiled presentation_claims: {presentation_claims}")
         except Exception as err:
             logger.error(
                 f"An exception occurred while extracting the proof claims: {err}"

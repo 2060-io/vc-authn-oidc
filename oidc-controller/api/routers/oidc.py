@@ -117,48 +117,6 @@ async def get_authorize(request: Request, db: Database = Depends(get_db)):
 
     # Prepeare the presentation request
     client = AcapyClient()
-    use_public_did = not settings.USE_OOB_LOCAL_DID_SERVICE
-    wallet_did = client.get_wallet_did(public=use_public_did)
-
-    byo_attachment = PresentProofv10Attachment.build(
-        pres_exch_dict["presentation_request"]
-    )
-
-    msg = None
-    if settings.USE_OOB_PRESENT_PROOF:
-        if settings.USE_OOB_LOCAL_DID_SERVICE:
-            oob_s_d = OOBServiceDecorator(
-                service_endpoint=client.service_endpoint,
-                recipient_keys=[wallet_did.verkey],
-            ).dict()
-        else:
-            oob_s_d = wallet_did.verkey
-
-        msg = PresentationRequestMessage(
-            id=pres_exch_dict["thread_id"],
-            request=[byo_attachment],
-        )
-        oob_msg = OutOfBandMessage(
-            request_attachments=[
-                OutOfBandPresentProofAttachment(
-                    id="request-0",
-                    data={"json": msg.dict(by_alias=True)},
-                )
-            ],
-            id=pres_exch_dict["thread_id"],
-            services=[oob_s_d],
-        )
-        msg_contents = oob_msg
-    else:
-        s_d = ServiceDecorator(
-            service_endpoint=client.service_endpoint, recipient_keys=[wallet_did.verkey]
-        )
-        msg = PresentationRequestMessage(
-            id=pres_exch_dict["thread_id"],
-            request=[byo_attachment],
-            service=s_d,
-        )
-        msg_contents = msg
 
     # Create and save OIDC AuthSession
     new_auth_session = AuthSessionCreate(
@@ -166,13 +124,11 @@ async def get_authorize(request: Request, db: Database = Depends(get_db)):
         pyop_auth_code=authn_response["code"],
         request_parameters=model.to_dict(),
         ver_config_id=ver_config_id,
-        pres_exch_id=response.presentation_exchange_id,
+        pres_exch_id=response.proofExchangeId,
         presentation_exchange=pres_exch_dict,
-        presentation_request_msg=msg_contents.dict(by_alias=True),
+        short_url=pres_exch_dict["shortUrl"],
     )
     auth_session = await AuthSessionCRUD(db).create(new_auth_session)
-
-    formated_msg = json.dumps(msg_contents.dict(by_alias=True))
 
     # QR CONTENTS
     controller_host = settings.CONTROLLER_URL
@@ -185,11 +141,9 @@ async def get_authorize(request: Request, db: Database = Depends(get_db)):
     image_contents = base64.b64encode(buff.getvalue()).decode("utf-8")
     callback_url = f"""{controller_host}{AuthorizeCallbackUri}?pid={auth_session.id}"""
 
-    # BC Wallet deep link
-    # base64 encode the formated_msg
-    base64_msg = base64.b64encode(formated_msg.encode("utf-8")).decode("utf-8")
-    wallet_deep_link = f"bcwallet://aries_proof-request?c_i={base64_msg}"
-
+    # Hologram deep link
+    wallet_deep_link = pres_exch_dict["url"]
+    short_url = pres_exch_dict["shortUrl"]
     # This is the payload to send to the template
     data = {
         "image_contents": image_contents,
@@ -201,6 +155,7 @@ async def get_authorize(request: Request, db: Database = Depends(get_db)):
         "controller_host": controller_host,
         "challenge_poll_uri": ChallengePollUri,
         "wallet_deep_link": wallet_deep_link,
+        "short_url": short_url,
     }
 
     # Prepare the template

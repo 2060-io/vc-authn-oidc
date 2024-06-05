@@ -1,3 +1,5 @@
+import json
+import requests
 import structlog
 
 from fastapi import APIRouter, Depends, Request
@@ -57,7 +59,15 @@ async def send_connectionless_proof_req(
         await AuthSessionCRUD(db).patch(auth_session.id, auth_session)
         await sio.emit("status", {"status": "pending"}, to=sid)
 
-    msg = auth_session.presentation_request_msg
+    short_url = auth_session.short_url
 
+    resp_raw = requests.get(auth_session.short_url,
+            headers={'Accept': 'application/json'},
+        )
+
+    assert resp_raw.status_code == 200, resp_raw.content
+
+    msg = json.loads(resp_raw.content)
+       
     logger.debug(msg)
     return JSONResponse(msg)
