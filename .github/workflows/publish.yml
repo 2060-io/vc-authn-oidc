@@ -5,7 +5,7 @@ env:
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, 2060]
 
 jobs:
   publish_image:
