@@ -28,7 +28,7 @@ class AuthSessionBase(BaseModel):
     request_parameters: dict
     pyop_auth_code: str
     response_url: str
-    presentation_request_msg: Optional[dict] = None
+    short_url: Optional[str] = None
 
     model_config = ConfigDict(populate_by_name=True)
 

@@ -95,7 +95,7 @@ EOF
 # Default Settings:
 # -----------------------------------------------------------------------------------------------------------------
 DEFAULT_CONTAINERS="keycloak keycloak-db controller-db"
-ACAPY_CONTAINERS="aca-py wallet-db"
+ACAPY_CONTAINERS="service-agent"
 PROD_CONTAINERS="controller"
 
 # -----------------------------------------------------------------------------------------------------------------
@@ -179,7 +179,7 @@ configureEnvironment() {
 
   # agent
   export AGENT_TENANT_MODE="${AGENT_TENANT_MODE:-single}"
-  export AGENT_HOST=${AGENT_HOST:-aca-py}
+  export AGENT_HOST=${AGENT_HOST:-service-agent}
   export AGENT_NAME="VC-AuthN Agent"
   export AGENT_HTTP_PORT=${AGENT_HTTP_PORT:-8030}
   export AGENT_ADMIN_PORT=${AGENT_ADMIN_PORT:-"8077"}
