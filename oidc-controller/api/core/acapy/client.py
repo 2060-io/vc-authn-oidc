@@ -43,12 +43,11 @@ class AcapyClient:
     ) -> CreatePresentationResponse:
         logger.debug(">>> create_presentation_request")
         # TODO: Take this from config
-        present_proof_payload = {"requestedCredentials": [{"credentialDefinitionId": "did:web:chatbot-demo.dev.2060.io?service=anoncreds&relativeRef=/credDef/8TsGLaSPVKPVMXK8APzBRcXZryxutvQuZnnTcDmbqd9p","attributes": ["phoneNumber"]}]}
 
         resp_raw = requests.post(
             self.acapy_host + CREATE_PRESENTATION_REQUEST_URL,
             headers=self.agent_config.get_headers(),
-            json=present_proof_payload,
+            json=presentation_request_configuration,
         )
 
         resp = json.loads(resp_raw.content)

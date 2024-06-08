@@ -37,38 +37,25 @@ class VerificationProofRequest(BaseModel):
     requested_attributes: List[ReqAttr]
     requested_predicates: List[ReqPred]
 
+class VerificationRequestedCredentials(BaseModel):
+    credentialDefinitionId: str
+    attributes: List[str]
 
 class VerificationConfigBase(BaseModel):
     subject_identifier: str = Field()
-    proof_request: VerificationProofRequest = Field()
+    # proof_request: VerificationProofRequest = Field()
+    requested_credentials: List[VerificationRequestedCredentials] = Field()
     generate_consistent_identifier: Optional[bool] = Field(default=False)
     include_v1_attributes: Optional[bool] = Field(default=False)
 
     def generate_proof_request(self):
-        result = {
-            "name": "proof_requested",
-            "version": "0.0.1",
-            "requested_attributes": {},
-            "requested_predicates": {},
-        }
-        for i, req_attr in enumerate(self.proof_request.requested_attributes):
-            label = req_attr.label or "req_attr_" + str(i)
-            result["requested_attributes"][label] = req_attr.dict(exclude_none=True)
-            if settings.SET_NON_REVOKED:
-                result["requested_attributes"][label]["non_revoked"] = {
-                    "from": int(time.time()),
-                    "to": int(time.time()),
-                }
-        # TODO add I indexing
-        for req_pred in self.proof_request.requested_predicates:
-            label = req_pred.label or "req_pred_" + str(i)
-            result["requested_predicates"][label] = req_pred.dict(exclude_none=True)
-            if settings.SET_NON_REVOKED:
-                result["requested_attributes"][label]["non_revoked"] = {
-                    "from": int(time.time()),
-                    "to": int(time.time()),
-                }
-        return result
+        # result = {
+        #     "requestedCredentials":[{
+        #         "credentialDefinitionId": self.requested_credentials[0].credentialDefinitionId,
+        #         "attributes":self.requested_credentials[0].attributes
+        #         }]
+        # }
+        return {"requestedCredentials":[credential.dict() for credential in self.requested_credentials]}
 
     model_config = ConfigDict(json_schema_extra={"example": ex_ver_config})
 
@@ -83,6 +70,7 @@ class VerificationConfigRead(VerificationConfigBase):
 
 class VerificationConfigPatch(VerificationConfigBase):
     subject_identifier: Optional[str] = Field(None)
-    proof_request: Optional[VerificationProofRequest] = Field(None)
+    # proof_request: Optional[VerificationProofRequest] = Field(None)
+    requested_credentials: Optional[VerificationRequestedCredentials] = Field(None)
 
     pass
