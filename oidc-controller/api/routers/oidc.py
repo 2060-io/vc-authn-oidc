@@ -287,7 +287,9 @@ async def post_token(request: Request, db: Database = Depends(get_db)):
 
         # convert form data to what library expects, Flask.app.request.get_data()
         data = urlencode(form_dict)
+        print("TEST TEST TEST", data)
         print("TEST TEST TEST", request.headers)
+        print("TEST TEST TEST", claims)
         token_response = provider.provider.handle_token_request(
             data, request.headers, claims
         )
