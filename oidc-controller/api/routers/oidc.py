@@ -83,7 +83,7 @@ async def poll_pres_exch_complete(pid: str, db: Database = Depends(get_db)):
 
 
 @log_debug
-@router.get("/qr", response_class=JSONResponse)
+@router.get("/qr")
 async def get_authorize(request: Request, db: Database = Depends(get_db)):
     """Called by oidc platform."""
     logger.debug(">>> get_authorize")
@@ -287,9 +287,6 @@ async def post_token(request: Request, db: Database = Depends(get_db)):
 
         # convert form data to what library expects, Flask.app.request.get_data()
         data = urlencode(form_dict)
-        print("TEST TEST TEST", data)
-        print("TEST TEST TEST", request.headers)
-        print("TEST TEST TEST", claims)
         token_response = provider.provider.handle_token_request(
             data, request.headers, claims
         )
