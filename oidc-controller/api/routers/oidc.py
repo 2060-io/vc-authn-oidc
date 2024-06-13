@@ -83,7 +83,7 @@ async def poll_pres_exch_complete(pid: str, db: Database = Depends(get_db)):
 
 
 @log_debug
-@router.get("/qr")
+@router.get("/qr", response_class=JSONResponse)
 async def get_authorize_qr(request: Request, db: Database = Depends(get_db)):
     """Called by oidc platform."""
     logger.debug(">>> get_authorize_qr")
@@ -147,15 +147,15 @@ async def get_authorize_qr(request: Request, db: Database = Depends(get_db)):
     # This is the payload to send to the template
     data = {
         "image_contents": image_contents,
-        "url_to_message": url_to_message,
+        # "url_to_message": url_to_message,
         "callback_url": callback_url,
         # "add_asset": add_asset,
         "pres_exch_id": auth_session.pres_exch_id,
         "pid": auth_session.id,
-        "controller_host": controller_host,
-        "challenge_poll_uri": ChallengePollUri,
-        "wallet_deep_link": wallet_deep_link,
-        "short_url": short_url,
+        # "controller_host": controller_host,
+        "challenge_poll_uri": ChallengePollUri
+        # "wallet_deep_link": wallet_deep_link,
+        # "short_url": short_url,
     }
 
     # Prepare the template
