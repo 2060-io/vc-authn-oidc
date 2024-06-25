@@ -1103,7 +1103,7 @@
         "clientId": "keycloak",
         "forwardParameters": "pres_req_conf_id",
         "tokenUrl": "http://controller:5000/token",
-        "authorizationUrl": "http://localhost:5000/authorize",
+        "authorizationUrl": "http://localhost:5000/qr",
         "clientAuthMethod": "client_secret_basic",
         "jwksUrl": "http://controller:5000/.well-known/openid-configuration/jwks",
         "syncMode": "LEGACY",
