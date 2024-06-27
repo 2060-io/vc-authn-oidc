@@ -81,7 +81,7 @@ kubectl delete secret,pvc --selector "app.kubernetes.io/instance"=my-release
 | ------------------- | --------------------------------------------------------------- | ------------------------------- |
 | `nameOverride`      |                                                                 | `""`                            |
 | `fullnameOverride`  |                                                                 | `""`                            |
-| `image.repository`  |                                                                 | `ghcr.io/bcgov/vc-authn-oidc`   |
+| `image.repository`  |                                                                 | `io2060/vc-auth-2060`   |
 | `image.pullPolicy`  |                                                                 | `IfNotPresent`                  |
 | `image.pullSecrets` |                                                                 | `[]`                            |
 | `image.tag`         | Overrides the image tag which defaults to the chart appVersion. | `2.0.1`                         |
