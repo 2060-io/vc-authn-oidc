@@ -49,7 +49,7 @@ To use VC-AuthN for development and/or demo purposes, a pre-configured demo app 
 In order to use the VC OIDC authentication, a couple of extra steps are required:
 
 - A proof-request configuration needs to be registered with VC-AuthN. To do
-  so, the following command can be used to post a configuration requesting a BC Wallet Showcase Person credential:
+  so, the following command can be used to post a configuration requesting a Hologram Wallet Showcase Person credential:
 
 ```bash
 curl -X 'POST' \
@@ -60,31 +60,14 @@ curl -X 'POST' \
   "ver_config_id": "showcase-person",
   "subject_identifier": "",
   "generate_consistent_identifier": true,
-  "proof_request": {
-    "name": "BC Wallet Showcase Person",
-    "version": "1.0",
-    "requested_attributes": [
-
+  "requested_credentials": [
       {
-        "names": ["given_names", "family_name", "country"],
-        "restrictions": [
-          {
-            "schema_name": "Person",
-            "issuer_did": "L6ASjmDDbDH7yPL1t2yFj9"
-          },
-          {
-            "schema_name": "Person",
-            "issuer_did": "QEquAHkM35w4XVT3Ku5yat"
-          },
-          {
-            "schema_name": "Person",
-            "issuer_did": "M6dhuFj5UwbhWkSLmvYSPc"
-          }
+        "credentialDefinitionId": "did:web:chatbot-demo.dev.2060.io?service=anoncreds&relativeRef=/credDef/8TsGLaSPVKPVMXK8APzBRcXZryxutvQuZnnTcDmbqd9p",
+        "attributes": [
+          "phoneNumber"
         ]
       }
     ],
-    "requested_predicates": []
-  }
 }'
 ```
 
@@ -111,7 +94,7 @@ curl -X 'POST' \
 }'
 ```
 
-- Lastly, obtain a Person Credential from the [BC Wallet Showcase](https://digital.gov.bc.ca/digital-trust/showcase) by completing the lawyer demo.
+- Lastly, obtain a Person Credential from the [Hologram Wallet Showcase](https://2060.io/use-cases/) by completing the lawyer demo.
 
 After all these steps have been completed, you should be able to authenticate with the demo application using the "Verified Credential Access" option.
 

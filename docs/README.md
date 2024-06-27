@@ -139,16 +139,14 @@ A verifiable credential presentation request configuration, takes the following 
   "id": "<configuration-identifier>",
   "subject_identifier": "<attribute-name>",
   "generate_consistent_identifier": <true|false>,
-  "proof_request": {
-    "name": "Basic Proof",
-    "version": "1.0",
-    "requested_attributes": [
+  "requested_credentials": [
       {
-        "names": ["email", "first_name", "last_name"]
-        "restrictions": []
+        "credentialDefinitionId": "did:web:chatbot-demo.dev.2060.io?service=anoncreds&relativeRef=/credDef/8TsGLaSPVKPVMXK8APzBRcXZryxutvQuZnnTcDmbqd9p",
+        "attributes": [
+          "phoneNumber"
+        ]
       }
-    ]
-  }
+    ],
 }
 ```
 

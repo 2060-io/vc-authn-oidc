@@ -6,7 +6,7 @@
     <h4>Mobile Wallet</h4>
     <ul>
       <li>
-        Download BC Wallet to a mobile device
+        Download Hologram Wallet to a mobile device
         <a
           href="https://www2.gov.bc.ca/gov/content/governments/government-id/bc-wallet"
         >https://www2.gov.bc.ca/gov/content/governments/government-id/bc-wallet</a
