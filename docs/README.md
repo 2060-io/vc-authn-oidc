@@ -156,7 +156,8 @@ This data model is inspired by that is defined and used in the [Hyperledger Indy
 - `id` : The identifier for the presentation configuration.
 - `subject_identifier` : See [here](#subject-identifer-mapping) for further details on the purpose of this field.
 - `generate_consistent_identifier` : Optional field defaulting to false. See [here](#subject-identifer-mapping) for more details.
-- `proof_request` : Contains the details on the presentation request, e.g which attributes are to be disclosed
+- `requested_credentials` : Contains details of the presentation request, specifying which credential should be submitted and its attributes.
+<!-- - `proof_request` : Contains the details on the presentation request, e.g which attributes are to be disclosed
     - `name` : The name that will accompany the presentation request
     - `version` : The version of the presentation request
     - `requested_attributes` : Is a list of requested attributes.
@@ -167,7 +168,7 @@ This data model is inspired by that is defined and used in the [Hyperledger Indy
             - `schema_name` : Name of the schema used for the credential the attribute is being disclosed from.
             - `schema_version` : Version of the schema used for the credential the attribute is being disclosed from.
             - `issuer_did` : DID of the issuer of the credential the attribute is being disclosed from.
-            - `cred_def_id` : Identifier of the credential definition the credential the attribute is being disclosed from.
+            - `cred_def_id` : Identifier of the credential definition the credential the attribute is being disclosed from. -->
 
 ### API
 
