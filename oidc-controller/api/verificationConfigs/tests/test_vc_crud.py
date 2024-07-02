@@ -6,7 +6,6 @@ from api.verificationConfigs.models import (
     VerificationProofRequest,
     VerificationConfigPatch,
     ReqAttr,
-    VerificationRequestedCredentials,
 )
 from api.db.session import COLLECTION_NAMES
 
@@ -17,12 +16,9 @@ from typing import Callable
 test_ver_config = VerificationConfig(
     ver_config_id="test_ver_config",
     subject_identifier="test_sub_id",
-    requested_credentials=VerificationRequestedCredentials(
-        credentialDefinitionId="test_credentialDefinitionId", attributes=[]
+    proof_request=VerificationProofRequest(
+        version="0.0.1", requested_attributes=[], requested_predicates=[]
     ),
-    # proof_request=VerificationProofRequest(
-    #     version="0.0.1", requested_attributes=[], requested_predicates=[]
-    # ),
 )
 
 
@@ -104,14 +100,11 @@ async def test_ver_config_patch_proof_request(db_client: Callable[[], MongoClien
     result = await crud.patch(
         "test_ver_config",
         VerificationConfigPatch(
-            requested_credentials=VerificationRequestedCredentials(
-                credentialDefinitionId="test_credentialDefinitionId", attributes=[]
+            proof_request=VerificationProofRequest(
+                version="0.0.2",
+                requested_attributes=[ReqAttr(names=["first_name"], restrictions=[])],
+                requested_predicates=[],
             ),
-            # proof_request=VerificationProofRequest(
-            #     version="0.0.2",
-            #     requested_attributes=[ReqAttr(names=["first_name"], restrictions=[])],
-            #     requested_predicates=[],
-            # ),
         ),
     )
     assert result
@@ -119,8 +112,8 @@ async def test_ver_config_patch_proof_request(db_client: Callable[[], MongoClien
     document = client.db.get_collection(COLLECTION_NAMES.VER_CONFIGS).find_one(
         {"ver_config_id": "test_ver_config"}
     )
-    # assert document["proof_request"]["version"] == "0.0.2"
-    # assert len(document["proof_request"]["requested_attributes"][0]["names"]) == 1
-    # assert (
-    #     document["proof_request"]["requested_attributes"][0]["names"][0] == "first_name"
-    # )
+    assert document["proof_request"]["version"] == "0.0.2"
+    assert len(document["proof_request"]["requested_attributes"][0]["names"]) == 1
+    assert (
+        document["proof_request"]["requested_attributes"][0]["names"][0] == "first_name"
+    )

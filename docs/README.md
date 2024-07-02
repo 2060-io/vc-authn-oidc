@@ -139,14 +139,16 @@ A verifiable credential presentation request configuration, takes the following 
   "id": "<configuration-identifier>",
   "subject_identifier": "<attribute-name>",
   "generate_consistent_identifier": <true|false>,
-  "requested_credentials": [
+  "proof_request": {
+    "name": "Basic Proof",
+    "version": "1.0",
+    "requested_attributes": [
       {
-        "credentialDefinitionId": "did:web:chatbot-demo.dev.2060.io?service=anoncreds&relativeRef=/credDef/8TsGLaSPVKPVMXK8APzBRcXZryxutvQuZnnTcDmbqd9p",
-        "attributes": [
-          "phoneNumber"
-        ]
+        "names": ["email", "first_name", "last_name"]
+        "restrictions": []
       }
-    ],
+    ]
+  }
 }
 ```
 
@@ -156,8 +158,7 @@ This data model is inspired by that is defined and used in the [Hyperledger Indy
 - `id` : The identifier for the presentation configuration.
 - `subject_identifier` : See [here](#subject-identifer-mapping) for further details on the purpose of this field.
 - `generate_consistent_identifier` : Optional field defaulting to false. See [here](#subject-identifer-mapping) for more details.
-- `requested_credentials` : Contains details of the presentation request, specifying which credential should be submitted and its attributes.
-<!-- - `proof_request` : Contains the details on the presentation request, e.g which attributes are to be disclosed
+- `proof_request` : Contains the details on the presentation request, e.g which attributes are to be disclosed
     - `name` : The name that will accompany the presentation request
     - `version` : The version of the presentation request
     - `requested_attributes` : Is a list of requested attributes.
@@ -168,7 +169,7 @@ This data model is inspired by that is defined and used in the [Hyperledger Indy
             - `schema_name` : Name of the schema used for the credential the attribute is being disclosed from.
             - `schema_version` : Version of the schema used for the credential the attribute is being disclosed from.
             - `issuer_did` : DID of the issuer of the credential the attribute is being disclosed from.
-            - `cred_def_id` : Identifier of the credential definition the credential the attribute is being disclosed from. -->
+            - `cred_def_id` : Identifier of the credential definition the credential the attribute is being disclosed from.
 
 ### API
 
