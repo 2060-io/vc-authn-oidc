@@ -1,4 +1,6 @@
 from typing import List
+from fastapi.responses import HTMLResponse
+from jinja2 import Template
 from pymongo.database import Database
 
 from fastapi import APIRouter, Depends
@@ -41,6 +43,20 @@ async def create_ver_config(
 )
 async def get_all_ver_configs(db: Database = Depends(get_db)):
     return await VerificationConfigCRUD(db).get_all()
+
+
+@router.get("/explorer", include_in_schema=False)
+async def get_proof_request_explorer(db: Database = Depends(get_db)):
+    data = {
+        "title": "Presentation Request Explorer",
+    }
+    template_file = open("api/templates/ver_config_explorer.html", "r").read()
+    template = Template(template_file)
+    #  get all from VerificationConfigCRUD and add to the jinja template
+    ver_configs = await VerificationConfigCRUD(db).get_all()
+    data["ver_configs"] = [vc.dict() for vc in ver_configs]
+
+    return HTMLResponse(template.render(data))
 
 
 @router.get(

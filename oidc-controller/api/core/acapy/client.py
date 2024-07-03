@@ -7,7 +7,7 @@ import structlog
 
 from ..config import settings
 from .config import AgentConfig, MultiTenantAcapy, SingleTenantAcapy
-from .models import CreatePresentationResponse, WalletDid
+from .models import CreatePresentationResponse, OobCreateInvitationResponse, WalletDid
 
 _client = None
 logger = structlog.getLogger(__name__)
@@ -16,7 +16,7 @@ WALLET_DID_URI = "/wallet/did"
 PUBLIC_WALLET_DID_URI = "/wallet/did/public"
 CREATE_PRESENTATION_REQUEST_URL = "/v1/invitation/presentation-request"
 PRESENT_PROOF_RECORDS = "/v1/presentations"
-
+OOB_CREATE_INVITATION = "/out-of-band/create-invitation"
 
 class AcapyClient:
     acapy_host = settings.ACAPY_ADMIN_URL
@@ -91,3 +91,62 @@ class AcapyClient:
 
         logger.debug(f"<<< verify_presentation -> {resp}")
         return resp
+
+    def get_wallet_did(self, public=False) -> WalletDid:
+        logger.debug(">>> get_wallet_did")
+        url = None
+        if public:
+            url = self.acapy_host + PUBLIC_WALLET_DID_URI
+        else:
+            url = self.acapy_host + WALLET_DID_URI
+
+        resp_raw = requests.get(
+            url,
+            headers=self.agent_config.get_headers(),
+        )
+
+        # TODO: Determine if this should assert it received a json object
+        assert (
+            resp_raw.status_code == 200
+        ), f"{resp_raw.status_code}::{resp_raw.content}"
+
+        resp = json.loads(resp_raw.content)
+
+        if public:
+            resp_payload = resp["result"]
+        else:
+            resp_payload = resp["results"][0]
+
+        did = WalletDid.parse_obj(resp_payload)
+
+        logger.debug(f"<<< get_wallet_did -> {did}")
+        return did
+
+    def oob_create_invitation(
+        self, presentation_exchange: dict, use_public_did: bool
+    ) -> OobCreateInvitationResponse:
+        logger.debug(">>> oob_create_invitation")
+        create_invitation_payload = {
+            "attachments": [
+                {
+                    "id": presentation_exchange["presentation_exchange_id"],
+                    "type": "present-proof",
+                    "data": {"json": presentation_exchange},
+                }
+            ],
+            "use_public_did": use_public_did,
+        }
+
+        resp_raw = requests.post(
+            self.acapy_host + OOB_CREATE_INVITATION,
+            headers=self.agent_config.get_headers(),
+            json=create_invitation_payload,
+        )
+
+        assert resp_raw.status_code == 200, resp_raw.content
+
+        resp = json.loads(resp_raw.content)
+        result = OobCreateInvitationResponse.parse_obj(resp)
+
+        logger.debug("<<< oob_create_invitation")
+        return result

@@ -20,9 +20,6 @@ from ..authSessions.crud import AuthSessionCreate, AuthSessionCRUD
 from ..authSessions.models import AuthSessionPatch, AuthSessionState
 from ..core.acapy.client import AcapyClient
 from ..core.aries import (
-    OOBServiceDecorator,
-    OutOfBandMessage,
-    OutOfBandPresentProofAttachment,
     PresentationRequestMessage,
     PresentProofv10Attachment,
     ServiceDecorator,
@@ -36,8 +33,6 @@ from ..db.session import get_db
 # Access to the websocket
 from ..routers.socketio import connections_reload, sio
 
-# This allows the templates to insert assets like css, js or svg.
-from ..templates.helpers import add_asset
 from ..verificationConfigs.crud import VerificationConfigCRUD
 
 ChallengePollUri = "/poll"
@@ -117,6 +112,29 @@ async def get_authorize(request: Request, db: Database = Depends(get_db)):
 
     # Prepeare the presentation request
     client = AcapyClient()
+    use_public_did = not settings.USE_OOB_LOCAL_DID_SERVICE
+    wallet_did = client.get_wallet_did(public=use_public_did)
+
+    byo_attachment = PresentProofv10Attachment.build(
+        pres_exch_dict["presentation_request"]
+    )
+
+    msg = None
+    if settings.USE_OOB_PRESENT_PROOF:
+        oob_invite_response = client.oob_create_invitation(
+            pres_exch_dict, use_public_did
+        )
+        msg_contents = oob_invite_response.invitation
+    else:
+        s_d = ServiceDecorator(
+            service_endpoint=client.service_endpoint, recipient_keys=[wallet_did.verkey]
+        )
+        msg = PresentationRequestMessage(
+            id=pres_exch_dict["thread_id"],
+            request=[byo_attachment],
+            service=s_d,
+        )
+        msg_contents = msg
 
     # Create and save OIDC AuthSession
     new_auth_session = AuthSessionCreate(
@@ -141,15 +159,20 @@ async def get_authorize(request: Request, db: Database = Depends(get_db)):
     image_contents = base64.b64encode(buff.getvalue()).decode("utf-8")
     callback_url = f"""{controller_host}{AuthorizeCallbackUri}?pid={auth_session.id}"""
 
-    # Hologram deep link
-    wallet_deep_link = pres_exch_dict["url"]
-    short_url = pres_exch_dict["shortUrl"]
+    # BC Wallet deep link
+    if settings.USE_URL_DEEP_LINK:
+        suffix = (
+            f'_url={base64.b64encode(url_to_message.encode("utf-8")).decode("utf-8")}'
+        )
+    else:
+        suffix = f'c_i={base64.b64encode(formated_msg.encode("utf-8")).decode("utf-8")}'
+    wallet_deep_link = f"bcwallet://aries_proof-request?{suffix}"
+
     # This is the payload to send to the template
     data = {
         "image_contents": image_contents,
         "url_to_message": url_to_message,
         "callback_url": callback_url,
-        "add_asset": add_asset,
         "pres_exch_id": auth_session.pres_exch_id,
         "pid": auth_session.id,
         "controller_host": controller_host,
