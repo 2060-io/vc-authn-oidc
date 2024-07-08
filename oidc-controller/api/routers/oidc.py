@@ -141,11 +141,13 @@ async def get_authorize(request: Request, db: Database = Depends(get_db)):
         pyop_auth_code=authn_response["code"],
         request_parameters=model.to_dict(),
         ver_config_id=ver_config_id,
-        pres_exch_id=response.proofExchangeId,
+        pres_exch_id=response.presentation_exchange_id,
         presentation_exchange=pres_exch_dict,
-        short_url=pres_exch_dict["shortUrl"],
+        presentation_request_msg=msg_contents.dict(by_alias=True),
     )
     auth_session = await AuthSessionCRUD(db).create(new_auth_session)
+
+    formated_msg = json.dumps(msg_contents.dict(by_alias=True))
 
     # QR CONTENTS
     controller_host = settings.CONTROLLER_URL
@@ -177,7 +179,6 @@ async def get_authorize(request: Request, db: Database = Depends(get_db)):
         "controller_host": controller_host,
         "challenge_poll_uri": ChallengePollUri,
         "wallet_deep_link": wallet_deep_link,
-        "short_url": short_url,
     }
 
     # Prepare the template

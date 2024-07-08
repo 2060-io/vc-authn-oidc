@@ -14,9 +14,10 @@ logger = structlog.getLogger(__name__)
 
 WALLET_DID_URI = "/wallet/did"
 PUBLIC_WALLET_DID_URI = "/wallet/did/public"
-CREATE_PRESENTATION_REQUEST_URL = "/v1/invitation/presentation-request"
-PRESENT_PROOF_RECORDS = "/v1/presentations"
+CREATE_PRESENTATION_REQUEST_URL = "/present-proof/create-request"
+PRESENT_PROOF_RECORDS = "/present-proof/records"
 OOB_CREATE_INVITATION = "/out-of-band/create-invitation"
+
 
 class AcapyClient:
     acapy_host = settings.ACAPY_ADMIN_URL
@@ -42,13 +43,16 @@ class AcapyClient:
         self, presentation_request_configuration: dict
     ) -> CreatePresentationResponse:
         logger.debug(">>> create_presentation_request")
-        # TODO: Take this from config
+        present_proof_payload = {"proof_request": presentation_request_configuration}
 
         resp_raw = requests.post(
             self.acapy_host + CREATE_PRESENTATION_REQUEST_URL,
             headers=self.agent_config.get_headers(),
-            json=presentation_request_configuration,
+            json=present_proof_payload,
         )
+
+        # TODO: Determine if this should assert it received a json object
+        assert resp_raw.status_code == 200, resp_raw.content
 
         resp = json.loads(resp_raw.content)
         result = CreatePresentationResponse.parse_obj(resp)
@@ -78,11 +82,12 @@ class AcapyClient:
     def verify_presentation(self, presentation_exchange_id: Union[UUID, str]):
         logger.debug(">>> verify_presentation")
 
-        resp_raw = requests.get(
+        resp_raw = requests.post(
             self.acapy_host
             + PRESENT_PROOF_RECORDS
             + "/"
-            + str(presentation_exchange_id),
+            + str(presentation_exchange_id)
+            + "/verify-presentation",
             headers=self.agent_config.get_headers(),
         )
         assert resp_raw.status_code == 200, resp_raw.content

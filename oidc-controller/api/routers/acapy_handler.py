@@ -22,26 +22,21 @@ async def _parse_webhook_body(request: Request):
     return json.loads((await request.body()).decode("ascii"))
 
 
-@router.post("/message-received")
-async def post_topic(request: Request, db: Database = Depends(get_db)):
-    """Called by Service Agent."""
-    logger.info(f">>> message-received")
-    webhook_body = await _parse_webhook_body(request)
-    logger.info(f">>>> body: {webhook_body}"
-    )    
-    topic = webhook_body["message"]["type"]
+@router.post("/topic/{topic}/")
+async def post_topic(request: Request, topic: str, db: Database = Depends(get_db)):
+    """Called by aca-py agent."""
+    logger.info(f">>> post_topic : topic={topic}")
 
     client = AcapyClient()
     match topic:
-        case "identity-proof-submit":
-            
-            pres_exch_id = webhook_body["message"]["submittedProofItems"][0]["proofExchangeId"]
+        case "present_proof":
+            webhook_body = await _parse_webhook_body(request)
             logger.info(
-                f">>>> pres_exch_id: {pres_exch_id}"
+                f">>>> pres_exch_id: {webhook_body['presentation_exchange_id']}"
             )
 
             auth_session: AuthSession = await AuthSessionCRUD(db).get_by_pres_exch_id(
-                pres_exch_id
+                webhook_body["presentation_exchange_id"]
             )
 
             # Get the saved websocket session
@@ -49,18 +44,33 @@ async def post_topic(request: Request, db: Database = Depends(get_db)):
             connections = connections_reload()
             sid = connections.get(pid)
 
-            verified = webhook_body["message"]["submittedProofItems"][0]["verified"]
+            if webhook_body["state"] == "presentation_received":
+                logger.info("GOT A PRESENTATION, TIME TO VERIFY")
+                client.verify_presentation(auth_session.pres_exch_id)
+                # This state is the default on the front end.. So don't send a status
 
-            if verified == True:
-                auth_session.proof_status = AuthSessionState.VERIFIED
-                await sio.emit("status", {"status": "verified"}, to=sid)
-            else:
-                auth_session.proof_status = AuthSessionState.FAILED
-                await sio.emit("status", {"status": "failed"}, to=sid)
+            if webhook_body["state"] == "verified":
+                logger.info("VERIFIED")
+                if webhook_body["verified"] == "true":
+                    auth_session.proof_status = AuthSessionState.VERIFIED
+                    await sio.emit("status", {"status": "verified"}, to=sid)
+                else:
+                    auth_session.proof_status = AuthSessionState.FAILED
+                    await sio.emit("status", {"status": "failed"}, to=sid)
 
-            await AuthSessionCRUD(db).patch(
-                str(auth_session.id), AuthSessionPatch(**auth_session.dict())
-            )
+                await AuthSessionCRUD(db).patch(
+                    str(auth_session.id), AuthSessionPatch(**auth_session.dict())
+                )
+
+            # abandoned state
+            if webhook_body["state"] == "abandoned":
+                logger.info("ABANDONED")
+                logger.info(webhook_body["error_msg"])
+                auth_session.proof_status = AuthSessionState.ABANDONED
+                await sio.emit("status", {"status": "abandoned"}, to=sid)
+                await AuthSessionCRUD(db).patch(
+                    str(auth_session.id), AuthSessionPatch(**auth_session.dict())
+                )
 
             # Calcuate the expiration time of the proof
             now_time = datetime.now()
