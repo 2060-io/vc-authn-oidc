@@ -49,7 +49,7 @@ To use VC-AuthN for development and/or demo purposes, a pre-configured demo app 
 In order to use the VC OIDC authentication, a couple of extra steps are required:
 
 - A proof-request configuration needs to be registered with VC-AuthN. To do
-  so, the following command can be used to post a configuration requesting a BC Wallet Showcase Person credential:
+  so, the following command can be used to post a configuration requesting a 2060 Chatbot demo Phone Number credential:
 
 ```bash
 curl -X 'POST' \
@@ -57,28 +57,19 @@ curl -X 'POST' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
-  "ver_config_id": "showcase-person",
+  "ver_config_id": "phone-number",
   "subject_identifier": "",
   "generate_consistent_identifier": true,
   "proof_request": {
-    "name": "BC Wallet Showcase Person",
+    "name": "Chatbot demo phone number",
     "version": "1.0",
     "requested_attributes": [
 
       {
-        "names": ["given_names", "family_name", "country"],
+        "names": ["phoneNumber"],
         "restrictions": [
           {
-            "schema_name": "Person",
-            "issuer_did": "L6ASjmDDbDH7yPL1t2yFj9"
-          },
-          {
-            "schema_name": "Person",
-            "issuer_did": "QEquAHkM35w4XVT3Ku5yat"
-          },
-          {
-            "schema_name": "Person",
-            "issuer_did": "M6dhuFj5UwbhWkSLmvYSPc"
+            "cred_def_id": "did:web:chatbot-demo.dev.2060.io?service=anoncreds&relativeRef=/credDef/8TsGLaSPVKPVMXK8APzBRcXZryxutvQuZnnTcDmbqd9p"
           }
         ]
       }

@@ -1,5 +1,3 @@
-import json
-import requests
 import structlog
 
 from fastapi import APIRouter, Depends, Request
@@ -13,7 +11,6 @@ from ..authSessions.models import AuthSession, AuthSessionState
 from ..core.config import settings
 from ..routers.socketio import sio, connections_reload
 from ..db.session import get_db
-from ..templates.helpers import add_asset
 
 logger: structlog.typing.FilteringBoundLogger = structlog.getLogger(__name__)
 
@@ -28,9 +25,6 @@ async def send_connectionless_proof_req(
     If the user scanes the QR code with a mobile camera,
     they will be redirected to a help page.
     """
-    data = {
-        "add_asset": add_asset,
-    }
     # First prepare the response depending on the redirect url
     if ".html" in settings.CONTROLLER_CAMERA_REDIRECT_URL:
         response = RedirectResponse(settings.CONTROLLER_CAMERA_REDIRECT_URL)
@@ -39,7 +33,7 @@ async def send_connectionless_proof_req(
             f"api/templates/{settings.CONTROLLER_CAMERA_REDIRECT_URL}.html", "r"
         ).read()
         template = Template(template_file)
-        response = HTMLResponse(template.render(data))
+        response = HTMLResponse(template.render())
 
     if "text/html" in req.headers.get("accept"):
         logger.info("Redirecting to instructions page")
@@ -57,17 +51,10 @@ async def send_connectionless_proof_req(
     if auth_session.proof_status is AuthSessionState.NOT_STARTED:
         auth_session.proof_status = AuthSessionState.PENDING
         await AuthSessionCRUD(db).patch(auth_session.id, auth_session)
-        await sio.emit("status", {"status": "pending"}, to=sid)
+        if sid:
+            await sio.emit("status", {"status": "pending"}, to=sid)
 
-    short_url = auth_session.short_url
+    msg = auth_session.presentation_request_msg
 
-    resp_raw = requests.get(auth_session.short_url,
-            headers={'Accept': 'application/json'},
-        )
-
-    assert resp_raw.status_code == 200, resp_raw.content
-
-    msg = json.loads(resp_raw.content)
-       
     logger.debug(msg)
     return JSONResponse(msg)
