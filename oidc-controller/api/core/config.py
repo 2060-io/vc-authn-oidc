@@ -224,7 +224,7 @@ class GlobalConfig(BaseSettings):
     USE_URL_DEEP_LINK: bool = strtobool(os.environ.get("USE_URL_DEEP_LINK", False))
     WALLET_DEEP_LINK_PREFIX: str = os.environ.get(
         "WALLET_DEEP_LINK_PREFIX",
-        "bcwallet://aries_proof-request")
+        "didcomm://aries_proof-request")
     SET_NON_REVOKED: bool = strtobool(os.environ.get("SET_NON_REVOKED", True))
 
     model_config = ConfigDict(case_sensitive=True)

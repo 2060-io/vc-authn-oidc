@@ -99,55 +99,26 @@ services:
     networks:
       - vc_auth
 
-  aca-py:
-    image: ghcr.io/hyperledger/aries-cloudagent-python:py3.9-0.12.1
+  service-agent:
+    image: io2060/2060-service-agent:dev
     environment:
-      - ACAPY_LABEL=${AGENT_NAME}
-      - ACAPY_ENDPOINT=${AGENT_ENDPOINT}
-      - ACAPY_WALLET_NAME=oidc_agent_wallet
-      - ACAPY_WALLET_TYPE=askar
-      - ACAPY_WALLET_KEY=${WALLET_ENCRYPTION_KEY}
-      - ACAPY_WALLET_SEED=${AGENT_WALLET_SEED}
-      - ACAPY_WALLET_LOCAL_DID=true
-      - ACAPY_AUTO_VERIFY_PRESENTATION=true
-      - ACAPY_WALLET_STORAGE_TYPE=${WALLET_TYPE}
-      - ACAPY_READ_ONLY_LEDGER=true
-      - ACAPY_GENESIS_TRANSACTIONS_LIST=/tmp/ledgers.yaml
-      - ACAPY_LOG_LEVEL=info
-      - ACAPY_WEBHOOK_URL=${CONTROLLER_WEB_HOOK_URL}
-      - ACAPY_AUTO_PROVISION=true
-      - POSTGRESQL_WALLET_HOST=${POSTGRESQL_WALLET_HOST}
-      - POSTGRESQL_WALLET_PORT=${POSTGRESQL_WALLET_PORT}
-      - POSTGRESQL_WALLET_USER=${POSTGRESQL_WALLET_USER}
-      - POSTGRESQL_WALLET_PASSWORD=${POSTGRESQL_WALLET_PASSWORD}
+      - AGENT_LABEL=${AGENT_NAME}
+      - AGENT_ENDPOINT=${AGENT_ENDPOINT}
+      - AGENT_WALLET_ID=oidc_agent_wallet
+      - AGENT_PORT=${AGENT_HTTP_PORT}
+      - ADMIN_PORT=${AGENT_ADMIN_PORT}
+      - AGENT_WALLET_KEY=${WALLET_ENCRYPTION_KEY}
+      - PUBLIC_API_BASE_URL=http://service-agent:${AGENT_HTTP_PORT}
+      - AGENT_LOG_LEVEL=4
+      - ADMIN_LOG_LEVEL=3
+      - EVENTS_BASE_URL=${CONTROLLER_WEB_HOOK_URL}
     ports:
       - ${AGENT_ADMIN_PORT}:${AGENT_ADMIN_PORT}
       - ${AGENT_HTTP_PORT}:${AGENT_HTTP_PORT}
     networks:
       - vc_auth
     volumes:
-      - ./agent/config/ledgers.yaml:/tmp/ledgers.yaml
-    depends_on:
-      - wallet-db
-    entrypoint: /bin/bash
-    command:
-      [
-        "-c",
-        'sleep 15; aca-py start --inbound-transport http ''0.0.0.0'' ${AGENT_HTTP_PORT} --outbound-transport http --wallet-storage-config ''{"url":"${POSTGRESQL_WALLET_HOST}:${POSTGRESQL_WALLET_PORT}","max_connections":5}'' --wallet-storage-creds ''{"account":"${POSTGRESQL_WALLET_USER}","password":"${POSTGRESQL_WALLET_PASSWORD}","admin_account":"${POSTGRESQL_WALLET_USER}","admin_password":"${POSTGRESQL_WALLET_PASSWORD}"}'' --admin ''0.0.0.0'' ${AGENT_ADMIN_PORT} --${AGENT_ADMIN_MODE} ',
-      ]
-
-  wallet-db:
-    image: postgres:15.1-alpine
-    environment:
-      - POSTGRES_USER=${POSTGRESQL_WALLET_USER}
-      - POSTGRES_PASSWORD=${POSTGRESQL_WALLET_PASSWORD}
-      - POSTGRES_DB=${POSTGRESQL_WALLET_DATABASE}
-    networks:
-      - vc_auth
-    ports:
-      - 5433:5432
-    volumes:
-      - agent-wallet-db:/var/lib/pgsql/data
+      - ./afj:/root/.afj
 
 networks:
   vc_auth:
@@ -156,4 +127,3 @@ networks:
 volumes:
   controller-db-data:
   keycloak-db-data:
-  agent-wallet-db:

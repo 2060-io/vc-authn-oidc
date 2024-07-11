@@ -6,7 +6,7 @@ tunnels:
     schemes:
       - https
   aca-py-ngrok:
-    addr: aca-py:8030
+    addr: service-agent:8030
     proto: http
     schemes:
       - https
